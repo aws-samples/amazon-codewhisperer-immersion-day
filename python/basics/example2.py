@@ -1,0 +1,1 @@
+# Create a function to create a DynamoDB table

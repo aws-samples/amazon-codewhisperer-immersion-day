@@ -1,0 +1,1 @@
+# define torch nn.module with 1 input layer, 3 hidden layers, and 1 output layer 

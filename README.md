@@ -1,28 +1,27 @@
-# amazon-codewhisperer-immersion-day
-* Add a brief paragraph or two that summarizes the purpose and function of this repository.
-* You could add relevant links for the consumers of this repository.
+# CodeWhisperer Workshop
 
-## Usage
-* Define the purpose of the repository if this is going to be a tool, utility, library or a service.
-* Provide the instructions on how to consume this repository for the consumers.
+This repository is in active development. It will eventually grow into an immersion day replacing the current workshop. 
 
-## Get Started
-* Provide instructions on how to setup and use this repository for local machine development and testing.
 
-## Prerequisites
-* Provide list of recommended modules and steps on how to install them.
+## Overview
 
-```
-Setup examples:
-...
-```
+We will develop the following modules. Each module is independent and can be completed on it's own. The Python about is about an hour and provides an introduction. We expect that most workshops will start will this module. The other modules are shorter (~30 mins) and participants can mix and match to cover the topics they care about.  
 
-## Install
-* Provide step-by-step guide on how to get the development environment running.
-* Provide test examples so as to perform a small demo.
+1. Accelerating Python development with Python (200 Level / Intro)
+1. Accelerating Java development with Amazon CodeWhisperer (300 Level / Java Sprint Boot)
+1. Accelerating Front-end web development with Amazon CodeWhisperer (300 Level / JavaScript / React)
+1. Building secure, responsible applications with Amazon CodeWhisperer (200 Level / Security scanning feature, reference tracker and bias avoidance).
+1. Accelerating machine learning with Amazon CodeWhisperer (300 Level / SageMaker Studio)
+1. Accelerating data science with Amazon CodeWhisperer (300 Level / JypterLab)
+1. Accelerating shell scripting with Amazon CodeWhisperer (300 Level)
+1. Accelerating database development with Amazon CodeWhisperer (300 Level)
+1. Accelerating big data with EMR and Amazon CodeWhisperer (300 Level)
 
-## Testing
-* Provide commands and configuration details on how to test the repository.
+We hope to launch the Python module by the ned of May and remaining modules by the end of June.
 
-## Contact
-* Provide contact details on how to contact the owners managing this repository.
+
+## Workshop Tenets
+
+1. The workshop should be organized into short, discrete activities so that a mistake in one module does not impact other modules.
+1. The workshop should focus on the development experience. Participants should not waste time waiting for deployments, etc. We have plenty of workshops that show you how to deploy things. 
+1. The workshop modules should allow many solutions. CodeWhisperer is non-deterministic. Do not expect that prompt will generate the same output a year from now as it did when you developed your module. 

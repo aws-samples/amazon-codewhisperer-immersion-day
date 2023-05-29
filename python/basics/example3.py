@@ -1,5 +1,3 @@
-""" 
-Function that takes a list that contains some numbers and strings, format them 
-into a string in which the numbers a prepended with a '#' and the strings 
-are wrapped in double qoutes
-"""
+# Parse a CSV string of songs and return a list of dictionaries
+# Fields include artist, album, title and year
+# Ignore lines starting with #

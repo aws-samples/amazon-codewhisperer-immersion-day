@@ -1,1 +1,3 @@
-# Create a function for binary search
+fakeUsers = [
+    { "name": "Harry Potter", "id": "user1" },
+]

@@ -17,11 +17,9 @@ def send_message_to_sqs(body):
 
 # Function to validate an email address using a regular expression
 def validate_email(email):
-    if len(email) > 7:
-        if email[:7] == "mailto:":
-            email = email[7:]
-        if "@" in email and "." in email:
-            return True
+    import re
+    if re.match(r"[^@]+@[^@]+\.[^@]+", email):
+        return True
     return False
 
 

@@ -3,7 +3,7 @@ import boto3
 import json
 import base64
 
-BUCKET_NAME = os.getenv("BUCKET_NAME", default="beabrian")
+BUCKET_NAME = os.getenv("BUCKET_NAME", default="mybucket")
 s3 = boto3.client('s3')
 
 

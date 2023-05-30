@@ -1,1 +1,1 @@
-# Create a function to create a DynamoDB table
+# Function to upload a file to an S3 bucket

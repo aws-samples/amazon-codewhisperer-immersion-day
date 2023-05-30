@@ -1,0 +1,1 @@
+# Function to create a DynamoDB table with employee ID as primary key and ReadCapacityUnits at 100 and WriteCapacityUnits at 200

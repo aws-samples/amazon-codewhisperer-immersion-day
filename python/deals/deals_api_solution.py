@@ -44,19 +44,28 @@ def json_to_xml(json_data):
 def lambda_handler(event, context):
     print(event)
     try:
-        accepts = event['headers']['Accept']
-        if accepts == 'application/xml':
-            print(json_to_xml(deals))
+        #read the Accept header to determine the format of the response
+        accept = event['headers']['Accept']
+
+        #if the Accept header is application/xml, convert the deals to xml and return it
+        if accept == 'application/xml':
             return {
                 'statusCode': 200,
-                'headers': {'content-type': 'application/xml'},
-                'body': json_to_xml(deals)
+                'body': json_to_xml(deals),
+                'headers': {
+                    'content-type': 'application/xml'
+                }
             }
-        return {
-            'statusCode': 200,
-            'headers': {'content-type': 'application/json'},
-            'body': json.dumps(deals)
-        }
+        
+        #if the Accept header is application/json, return the deals as json
+        elif accept == 'application/json':
+            return {
+                'statusCode': 200,
+                'body': json.dumps(deals),
+                'headers': {
+                    'content-type': 'application/json'
+                }
+            }
     except Exception as e:
         print(e)
         return {'statusCode': 500}

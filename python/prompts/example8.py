@@ -1,0 +1,1 @@
+# Function which given a date returns information if its a US federal holiday using holidays package

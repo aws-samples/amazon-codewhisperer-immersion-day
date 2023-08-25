@@ -9,17 +9,19 @@ import org.springframework.context.annotation.Bean;
 
 
 @SpringBootApplication
-public class CustomerapiApplication {
+public class CustomerAPIApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(CustomerapiApplication.class, args);
+		SpringApplication.run(CustomerAPIApplication.class, args);
 	}
 
 	@Bean
 	public CommandLineRunner loadData(CustomerRepository repository) {
 		return (args) -> {
-			// ENTER CW COMMENT HERE TO GENERATE TEST DATA
-			
+			// ENTER CW CODE HERE TO GENERATE TEST DATA
+			repository.save(new Customer("XXXXXXXXXXXX", "Thomas", "Jefferson"));
+			repository.save(new Customer("XXXXXXXXXXXX", "George", "Washington"));
+			repository.save(new Customer("XXXXXXXXXXXX", "John", "Adams"));
 
 			//get all customers from database and print to console
 			for (Customer customer : repository.findAll()) {

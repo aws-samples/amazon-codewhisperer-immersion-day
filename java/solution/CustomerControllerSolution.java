@@ -43,14 +43,14 @@ public class CustomerController {
 		return customerRepository.save(customer);
 	}
 
-	// Delete method to delete a customer
+	// method to delete a customer
 	@RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void deleteCustomer(@PathVariable("id") Long id) {
         customerRepository.deleteById(id);
 	}
 
-    // Update method to update a customer
+    // method to update a customer
     @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.OK)
     public @ResponseBody Customer updateCustomer(@PathVariable("id") Long id, @RequestBody Customer customer) {

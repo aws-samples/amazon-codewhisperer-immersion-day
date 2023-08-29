@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="220" height="220">
+
+<path d="M210,110 a100,100 0 0,0 -200,0 a100,100 0 0,0 200,0" stroke="black" stroke-width="2" fill="none" />
+<path d="M10,110 a100,40 0 0,0 200,0" stroke="black" stroke-width="1" fill="none" />
+<path d="M210,110 a100,40 0 0,0 -200,0" stroke="black" stroke-dasharray="5,5" stroke-width="1" fill="none" />
+<path d="M210,110 l-100,0" stroke="black" stroke-width="1" fill="none" />
+
+<text x="160" y="105" fill="black">r</text>
+</svg>

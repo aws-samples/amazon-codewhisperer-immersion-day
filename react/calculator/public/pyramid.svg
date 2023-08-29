@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="220" height="220">
+
+<path d="M10,200 l135,10 l65,-30 L110,10 z M110,10 L145,210" stroke="black" stroke-width="2" fill="none" />
+<path d="M10,200 l65,-30 l135,10 M110,10 L75,170" stroke="black" stroke-dasharray="5,5" stroke-width="1" fill="none" />
+<path d="M110,190 L110,10" stroke="black" stroke-width="1" fill="none" />
+
+<text x="100" y="120" fill="black">h</text>
+</svg>

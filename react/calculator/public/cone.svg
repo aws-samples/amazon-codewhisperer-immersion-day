@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="220" height="220">
+<g stroke="black" fill="none">
+<path d="M208.430591,174.705882 L110,10 L11.569409,174.705882 a100,30 0 1,0 196.861182,0" stroke-width="2" />
+<path d="M11.1314,174.705882 a100,30 0 0,1 196.861182,0" stroke-dasharray="5,5" stroke-width="1" />
+<path d="M210,180 l-100,0 l0,-170" stroke-width="1" />
+</g>
+<text x="100" y="105">h</text>
+<text x="150" y="175">r</text>
+<text x="175" y="110">s</text>
+</svg>
+

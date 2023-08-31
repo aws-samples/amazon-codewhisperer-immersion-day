@@ -1,0 +1,706 @@
+Mappings:
+  Subnets:
+    VPC:
+      CIDR: '10.0.0.0/16'
+    PublicOne:
+      CIDR: '10.0.0.0/24'
+    PublicTwo:
+      CIDR: '10.0.1.0/24'
+    PrivateOne:
+      CIDR: '10.0.2.0/24'
+    PrivateTwo:
+      CIDR: '10.0.3.0/24'
+  SagemakerImageMap: 
+    us-east-1: 
+      "Account": "081325390199"
+    us-east-2: 
+      "Account": "429704687514"
+    us-west-2: 
+      "Account": "236514542706"
+    eu-west-1: 
+      "Account": "470317259841"
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !FindInMap [Subnets, VPC, CIDR]
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+  GatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+  PublicOneSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: !FindInMap [Subnets, PublicOne, CIDR]
+      VpcId: !Ref VPC
+      MapPublicIpOnLaunch: true
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: {Ref: 'AWS::Region'}
+  PublicOneRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+  PublicOneRoute:
+    Type: AWS::EC2::Route
+    DependsOn: GatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicOneRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+  PublicOneRouteTableAssoc:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicOneRouteTable
+      SubnetId: !Ref PublicOneSubnet
+  PublicTwoSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: !FindInMap [Subnets, PublicTwo, CIDR]
+      VpcId: !Ref VPC
+      MapPublicIpOnLaunch: true
+      AvailabilityZone:
+        Fn::Select:
+          - 1
+          - Fn::GetAZs: {Ref: 'AWS::Region'}
+  PublicTwoRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+  PublicTwoRoute:
+    Type: AWS::EC2::Route
+    DependsOn: GatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicTwoRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+  PublicTwoRouteTableAssoc:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicTwoRouteTable
+      SubnetId: !Ref PublicTwoSubnet
+  PrivateSubnetOne:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: !FindInMap [Subnets, PrivateOne, CIDR]
+      VpcId: !Ref VPC
+      MapPublicIpOnLaunch: true
+      AvailabilityZone:
+        Fn::Select:
+          - 1
+          - Fn::GetAZs: {Ref: 'AWS::Region'}  
+  PrivateSubnetTwo:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: !FindInMap [Subnets, PrivateTwo, CIDR]
+      VpcId: !Ref VPC
+      MapPublicIpOnLaunch: true
+      AvailabilityZone:
+        Fn::Select:
+          - 1
+          - Fn::GetAZs: {Ref: 'AWS::Region'}
+  NatGateway:
+    Type: AWS::EC2::NatGateway
+    Properties: 
+      SubnetId: !Ref PublicOneSubnet
+      AllocationId: !GetAtt NatPublicIP.AllocationId
+  NatPublicIP:
+    Type: AWS::EC2::EIP
+    DependsOn: VPC
+    Properties:
+      Domain: vpc 
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC 
+  PrivateRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      NatGatewayId: !Ref NatGateway
+      RouteTableId: !Ref PrivateRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+  PrivateSubnetOneRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnetOne
+      RouteTableId: !Ref PrivateRouteTable
+  PrivateSubnetTwoRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnetTwo
+      RouteTableId: !Ref PrivateRouteTable      
+
+## 
+## Creates necessary components required for the SageMaker Studio Module
+## and ensures resources created by SageMaker are removed during deletion
+## of the stack.
+##
+
+  SMDomainBucket:
+    Type: AWS::S3::Bucket
+  SMDomainBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      PolicyDocument:
+        Statement:
+        - Effect: Deny
+          Principal: "*"
+          Action: s3:*
+          Resource: !GetAtt SMDomainBucket.Arn
+          Condition:
+            Bool:
+              aws:SecureTransport: 'false'
+        Id: Enforce HTTPS
+      Bucket: !Ref SMDomainBucket
+  SageMakerDomainExecutionRole: 
+    Type: "AWS::IAM::Role"
+    Properties: 
+      AssumeRolePolicyDocument: 
+        Version: "2012-10-17"
+        Statement: 
+          - Effect: "Allow"
+            Principal: 
+              Service: 
+                - "sagemaker.amazonaws.com"
+            Action: 
+              - "sts:AssumeRole"
+      Path: "/"
+      ManagedPolicyArns: 
+        - arn:aws:iam::aws:policy/AmazonSageMakerFullAccess
+      Policies:
+        - PolicyName: S3AccessPermissions
+          PolicyDocument: 
+            Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+              - s3:GetObject
+              - s3:PutObject
+              - s3:DeleteObject
+              - s3:ListBucket
+              Resource:
+              - arn:aws:s3:::*
+        - PolicyName: CodeWhispererPermissions
+          PolicyDocument: 
+            Version: '2012-10-17'
+            Statement:
+              - Sid: CodeWhispererPermissions
+                Effect: Allow
+                Action:
+                  - codewhisperer:GenerateRecommendations
+                Resource: "*"
+  SMDomain:
+    Type: AWS::SageMaker::Domain
+    Properties: 
+      AppNetworkAccessType: PublicInternetOnly
+      DomainName: codewhisperer-workshop
+      AuthMode: IAM
+      DefaultUserSettings: 
+        ExecutionRole: !GetAtt SageMakerDomainExecutionRole.Arn
+        SharingSettings:
+          NotebookOutputOption: Allowed
+          S3OutputPath: !Sub s3://${SMDomainBucket}/sharing
+      SubnetIds: 
+        - !Ref PrivateSubnetOne
+        - !Ref PrivateSubnetTwo
+      VpcId: !Ref VPC
+  SMDomainLifecycleConfig:
+    Type: Custom::SageMakerStudioLifecycleConfig
+    Properties:
+      ServiceToken: !GetAtt LifecycleConfigurationFunction.Arn
+      ConfigName: "download-notebook"
+      ConfigType: "JupyterServer"
+      DomainId: !GetAtt SMDomain.DomainId
+      Script: 
+        Fn::Base64: |
+          #!/bin/bash -x
+
+          # Build the URL for the GitHub repository
+          
+          REPO_URL="https://github.com/aws-samples/amazon-codewhisperer-immersion-day.git"
+
+          # Create a temporary directory to download the archive
+          TMP_DIR=$(mktemp -d)
+
+          # Clone the repository and switch to the specified branch (main by default)
+          git clone "$REPO_URL" "$TMP_DIR" && cd "$TMP_DIR"
+
+          # Use git archive to download the specific folder
+          cd sagemaker && cp -R start-here.ipynb ~
+
+          # Clean up by removing the temporary directory
+          rm -rf "$TMP_DIR"
+
+          echo "Folder downloaded successfully."
+  SMDomainWorkshopUser:
+    DependsOn: 
+      - DomainCleaner
+      - SMDomainLifecycleConfig
+    Type: AWS::SageMaker::UserProfile
+    Properties:
+      DomainId: !Ref SMDomain
+      UserProfileName: codewhisperer-workshop-user
+      UserSettings:
+        ExecutionRole: !GetAtt SageMakerDomainExecutionRole.Arn
+        JupyterServerAppSettings:
+          DefaultResourceSpec:
+            SageMakerImageArn: 
+              Fn::Sub: 
+                - arn:aws:sagemaker:${Region}:${Account}:image/jupyter-server-3
+                - Region: !Ref AWS::Region
+                  Account: !FindInMap [SagemakerImageMap, !Ref AWS::Region, "Account"]
+            InstanceType: system
+        KernelGatewayAppSettings: 
+          DefaultResourceSpec: 
+            SageMakerImageArn: 
+              Fn::Sub: 
+                - arn:aws:sagemaker:${Region}:${Account}:image/datascience-1.0
+                - Region: !Ref AWS::Region
+                  Account: !FindInMap [SagemakerImageMap, !Ref AWS::Region, Account]
+            InstanceType: ml.m5.large
+        RStudioServerProAppSettings:
+          AccessStatus: DISABLED
+  SMJupyterStudioApp:
+    Type: AWS::SageMaker::App
+    Properties: 
+      AppName: default
+      AppType: "JupyterServer"
+      DomainId: !Ref SMDomain
+      UserProfileName: 
+        !Select [0, !Split ["|", !Ref SMDomainWorkshopUser]]
+      ResourceSpec:
+        SageMakerImageArn: 
+          Fn::Sub: 
+            - arn:aws:sagemaker:${Region}:${Account}:image/jupyter-server-3
+            - Region: !Ref AWS::Region
+              Account: !FindInMap [SagemakerImageMap, !Ref AWS::Region, "Account"]
+  SMStudioKernel:
+    Type: AWS::SageMaker::App
+    Properties: 
+      DomainId: !Ref SMDomain
+      UserProfileName: !Select [0, !Split ["|", !Ref SMDomainWorkshopUser]]
+      AppType: KernelGateway
+      AppName: notebook-kernel
+      ResourceSpec:
+        SageMakerImageArn: 
+          Fn::Sub: 
+            - arn:aws:sagemaker:${Region}:${Account}:image/datascience-1.0
+            - Region: !Ref AWS::Region
+              Account: !FindInMap [SagemakerImageMap, !Ref AWS::Region, Account]
+        InstanceType: ml.m5.large
+  WorkshopCustomResourceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+      Policies:
+        - PolicyName: DomainCleanerPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - elasticfilesystem:DescribeFileSystems
+                  - elasticfilesystem:DescribeMountTargets
+                  - elasticfilesystem:DeleteMountTarget
+                  - elasticfilesystem:DescribeTags
+                  - elasticfilesystem:DeleteFileSystem
+                  - ec2:DescribeSecurityGroups
+                  - ec2:DescribeTags
+                  - ec2:DeleteSecurityGroup
+                  - ec2:DescribeNetworkInterfaces
+                  - ec2:DeleteNetworkInterface
+                  - ec2:RevokeSecurityGroupIngress
+                  - ec2:RevokeSecurityGroupEgress
+                  - sagemaker:CreateStudioLifecycleConfig
+                  - sagemaker:DeleteStudioLifecycleConfig
+                  - sagemaker:UpdateDomain
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: arn:aws:logs:*:*:log-group:/aws/lambda/*
+  LifecycleConfigurationFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Runtime: python3.8
+      Handler: index.lambda_handler
+      Timeout: 600
+      Code:
+        ZipFile: |
+          import boto3
+          import cfnresponse
+          import logging
+          import uuid
+
+          uuid = str(uuid.uuid4()).split("-")[0]
+
+          logger = logging.getLogger()
+          logger.setLevel(logging.INFO)
+          sagemaker_client = boto3.client('sagemaker')
+
+          def create_sagemaker_lifecycle_config(config_name, config_type, script):
+              try:
+                  # Implement input validation logic
+                  if not config_name or not config_type or not script:
+                      raise ValueError("Invalid input parameters: ConfigName, ConfigType, and Script must be provided.")
+                  
+                  # Create the SageMaker Studio Lifecycle configuration
+                  response = sagemaker_client.create_studio_lifecycle_config(
+                      StudioLifecycleConfigName=config_name,
+                      StudioLifecycleConfigAppType=config_type,
+                      StudioLifecycleConfigContent=script
+                  )
+                  
+                  # Return the created configuration ARN or any other required output
+                  return {'ConfigArn': response['StudioLifecycleConfigArn']}
+              
+              except Exception as e:
+                  logger.exception(f"Error creating SageMaker Studio Lifecycle config: {e}")
+                  raise
+
+          def update_sagemaker_lifecycle_config(config_name, config_type, script):
+              try:
+                  # Implement input validation logic
+                  if not config_name:
+                      raise ValueError("ConfigName must be provided.")
+                  
+                  # Delete the existing SageMaker Studio Lifecycle configuration
+                  try:
+                      sagemaker_client.delete_studio_lifecycle_config(
+                          StudioLifecycleConfigName=config_name
+                      )
+                  except sagemaker_client.exceptions.ResourceNotFound:
+                      logger.warning(f"SageMaker Studio Lifecycle config not found: {config_name}. It may have already been deleted during the update.")
+                  
+                  # Create a new SageMaker Studio Lifecycle configuration with the updated settings
+                  return create_sagemaker_lifecycle_config(config_name, config_type, script)
+              
+              except Exception as e:
+                  logger.exception(f"Error updating SageMaker Studio Lifecycle config: {e}")
+                  raise
+
+          def delete_sagemaker_lifecycle_config(config_name):
+              try:
+                  # Implement input validation logic
+                  if not config_name:
+                      raise ValueError("ConfigName must be provided.")
+                  
+                  # Delete the SageMaker Studio Lifecycle configuration
+                  sagemaker_client.delete_studio_lifecycle_config(
+                      StudioLifecycleConfigName=config_name
+                  )
+                  
+              except sagemaker_client.exceptions.ResourceNotFound as e:
+                  logger.warning(f"SageMaker Studio Lifecycle config not found: {config_name}. It may have already been deleted.")
+              
+              except Exception as e:
+                  logger.exception(f"Error deleting SageMaker Studio Lifecycle config: {e}")
+                  raise
+
+          def associate_with_domain(domain_id, config_arn):
+              if not config_arn:
+                config_arn = None
+              sagemaker_client.update_domain(
+                      DomainId=domain_id,
+                      DefaultUserSettings={
+                          'JupyterServerAppSettings': { 
+                              "DefaultResourceSpec": { 
+                                  "LifecycleConfigArn": config_arn
+                              },
+                              "LifecycleConfigArns": [config_arn]
+                      },
+                  })
+              
+          def lambda_handler(event, context):
+              logger.info(f"Received event: {event}")
+
+              try:
+                  config_name = event['ResourceProperties']['ConfigName']
+                  config_type = event['ResourceProperties']['ConfigType']
+                  script = event['ResourceProperties']['Script']
+                  domain_id = event['ResourceProperties']['DomainId']
+
+                  if event['RequestType'] == 'Create':
+                      config_name = "{}-{}".format(config_name,uuid)
+                      response_data = create_sagemaker_lifecycle_config(config_name, config_type, script)
+                      associate_with_domain(domain_id, response_data['ConfigArn'])
+                  elif event['RequestType'] == 'Update':
+                      config_name = event['ResourceProperties']['PhysicalResourceId']
+                      response_data = update_sagemaker_lifecycle_config(config_name, config_type, script)
+                      associate_with_domain(domain_id, response_data['ConfigArn'])
+                  elif event['RequestType'] == 'Delete':
+                      config_name = event['PhysicalResourceId']
+                      delete_sagemaker_lifecycle_config(config_name)
+                      response_data = {}
+
+                  cfnresponse.send(event, context, cfnresponse.SUCCESS, response_data, config_name)
+
+              except Exception as e:
+                  logger.exception(f"Error: {e}")
+                  cfnresponse.send(event, context, cfnresponse.FAILED, {}, config_name)
+      Role: !GetAtt WorkshopCustomResourceRole.Arn
+  DomainCleanerFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Runtime: python3.8
+      Handler: index.lambda_handler
+      Timeout: 600
+      Code:
+        ZipFile: |
+          import boto3
+          import cfnresponse
+          import logging
+          import time
+          import json
+          import botocore
+
+          from botocore.exceptions import ClientError
+
+          logger = logging.getLogger()
+          logger.setLevel(logging.INFO)
+
+          efs_client = boto3.client('efs')
+
+
+          def lambda_handler(event, context):
+              
+              try:
+                  logger.info("Received event: %s", json.dumps(event, indent=4))
+
+                  if event['RequestType'] == 'Create':
+                      logger.info("Handling create event")
+                      domain_arn = event['ResourceProperties']['Tags']['Value']
+                      cfnresponse.send(event, context, cfnresponse.SUCCESS, {}, domain_arn)
+                      return
+              
+                  if event['RequestType'] == 'Update':
+                      logger.info("Handling update event")
+                      domain_arn = event['ResourceProperties']['Tags']['Value']
+                      cfnresponse.send(event, context, cfnresponse.SUCCESS, {}, domain_arn)
+                      return
+              
+                  if event['RequestType'] == 'Delete':
+                      logger.info("Handling delete event")
+                      domain_arn = event['ResourceProperties']['Tags']['Value']
+                      if domain_arn:
+
+                          file_system_id = find_file_system(domain_arn)
+                          logger.info("Found file system for domain %s: %s", domain_arn, file_system_id)
+                          if file_system_id:
+                              delete_file_system(file_system_id)
+                          else:
+                              logger.error("File system not found for deletion.")
+                          
+                          delete_network_interfaces()
+                          delete_security_groups(event)
+                          empty_s3_bucket(event)
+                      else:
+                          logger.error("File system not found for deletion.")
+                      
+                  cfnresponse.send(event, context, cfnresponse.SUCCESS, {})
+              except Exception as e:
+                  logger.error("Failed to process event: %s", e)
+                  cfnresponse.send(event, context, cfnresponse.FAILED, {"Error": str(e)})
+
+          def find_file_system(domain_arn):
+              response = efs_client.describe_file_systems()
+              logger.info("DescribeFileSystems response: %s", response)
+
+              for file_system in response['FileSystems']:
+                  tags = efs_client.describe_tags(FileSystemId=file_system['FileSystemId'])
+                  logger.info("DescribeTags response for file system %s: %s", file_system['FileSystemId'], tags)
+
+                  for tag in tags['Tags']:
+                      if (
+                          tag['Key'] == "ManagedByAmazonSageMakerResource"
+                          and tag['Value'] == domain_arn
+                      ):
+                          return file_system['FileSystemId']
+
+          def delete_file_system(file_system_id):
+              efs_client = boto3.client('efs')
+
+              # Delete mount targets associated with the file system
+              response = efs_client.describe_mount_targets(FileSystemId=file_system_id)
+              logger.info("DescribeMountTargets response for file system %s: %s", file_system_id, response)
+              
+              for mount_target in response['MountTargets']:
+                  mount_target_id = mount_target['MountTargetId']
+                  try:
+                      logger.info("Deleting mount target: %s", mount_target_id)
+                      efs_client.delete_mount_target(MountTargetId=mount_target_id)
+                      wait_for_mount_target_deletion(file_system_id, mount_target_id)
+                  except efs_client.exceptions.MountTargetNotFound as e:
+                      logger.warning("Mount target %s not found.", mount_target_id)
+                  except Exception as e:
+                      raise Exception("Failed to delete mount target %s: %s", mount_target_id, e)
+
+              try:
+                  logger.info("Proceeding to delete file system: %s", file_system_id)
+                  efs_client.delete_file_system(FileSystemId=file_system_id)
+                  wait_for_file_system_deletion(file_system_id)
+              except efs_client.exceptions.FileSystemNotFound as e:
+                  logger.warning("File system %s not found.", file_system_id)
+
+          def delete_network_interfaces():
+              ec2_client = boto3.client('ec2')
+
+              response = ec2_client.describe_network_interfaces(
+                  Filters=[
+                      {
+                          'Name': 'tag-key',
+                          'Values': ["ManagedByAmazonSageMakerResource"]
+                      }
+                  ]
+              )
+
+              for network_interface in response['NetworkInterfaces']:
+                  network_interface_id = network_interface['NetworkInterfaceId']
+                  logger.info("Deleting network interface: %s", network_interface_id)
+                  counter = 0
+                  while counter < 60:
+                      try:            
+                          ec2_client.delete_network_interface(NetworkInterfaceId=network_interface_id)
+                          wait_for_network_interface_deletion(network_interface_id)
+                          return
+                      except ClientError as err:
+                          if err.response['Error']['Code'] == 'InvalidParameterValue':
+                              logger.warning("Invalid value for parameter %s.", err)
+                              counter += 1
+                              time.sleep(5)
+                              continue
+                          elif "NotFound" in err.response['Error']['Code']:
+                              logger.warning("Network Interface not found, assume deleted - %s.", err)
+                              return
+                  return
+                  
+          def wait_for_network_interface_deletion(network_interface_id):
+              ec2_client = boto3.client('ec2')
+              while True:
+                  try:
+                      response = ec2_client.describe_network_interfaces(
+                          NetworkInterfaceIds=[network_interface_id]
+                      )
+                      if len(response['NetworkInterfaces']) == 0:
+                          return
+                      time.sleep(5)
+                  except ClientError as err:
+                      if "NotFound" in err.response['Error']['Code']:
+                        logger.warning("Network Interface not found, assume deleted - %s.", err)
+                        return
+
+          def delete_security_groups(event):
+              ec2_client = boto3.client('ec2')
+
+              try: 
+                  tag_key = event['ResourceProperties']['Tags']['Key']
+                  tag_value = event['ResourceProperties']['Tags']['Value']
+                  response = ec2_client.describe_security_groups(Filters=[
+                          {
+                              'Name': 'tag:{}'.format(tag_key),
+                              'Values': [tag_value]
+                          }
+                      ])
+
+                  for security_group in response['SecurityGroups']:
+                      logger.info("Processing rules for security group: {}".format(json.dumps(security_group)))
+                      for rule in security_group['IpPermissions']:
+                          logger.info("Revoking rule: {}".format(json.dumps(rule)))
+                          ec2_client.revoke_security_group_ingress(
+                              GroupId=security_group['GroupId'],
+                              IpPermissions=[rule]
+                          )
+                      for rule in security_group['IpPermissionsEgress']:
+                          logger.info("Revoking egress rule: {}".format(json.dumps(rule)))
+                          ec2_client.revoke_security_group_egress(
+                              GroupId=security_group['GroupId'],
+                              IpPermissions=[rule]
+                              )
+                  for security_group in response['SecurityGroups']:
+                      ec2_client.delete_security_group(GroupId=security_group['GroupId'])
+                      logger.info("Deleted security group: %s", security_group['GroupId'])
+              except Exception as e:
+                  raise Exception("Failed to delete security groups: %s", e)
+
+          def empty_s3_bucket(event):
+              try:
+                  bucket_name = event['ResourceProperties']['BucketName']
+                  logger.info("Emptying S3 bucket: %s", bucket_name)
+
+                  s3 = boto3.resource('s3')
+                  bucket = s3.Bucket(bucket_name)
+
+                  # Delete all objects in the bucket
+                  bucket.objects.all().delete()
+                  logger.info("Deleted all objects in S3 bucket: %s", bucket_name)
+
+              except Exception as e:
+                  raise Exception("Failed to empty bucket %s: %s", bucket_name, e)
+
+          def wait_for_file_system_deletion(file_system_id, timeout=300, delay=10):
+              start_time = time.time()
+              end_time = start_time + timeout
+
+              while time.time() < end_time:
+                  try:
+                      response = efs_client.describe_file_systems(
+                          FileSystemId=file_system_id
+                      )
+                      file_systems = response['FileSystems']
+
+                      if not file_systems:
+                          # The file system no longer exists (deleted)
+                          print(f"EFS file system {file_system_id} is deleted.")
+                          return True
+
+                  except botocore.exceptions.ClientError as e:
+                      if e.response['Error']['Code'] == 'FileSystemNotFound':
+                          # The file system is not found, which means it is deleted
+                          print(f"EFS file system {file_system_id} is deleted.")
+                          return True
+
+                  time.sleep(delay)
+
+              print(f"Timeout: EFS file system {file_system_id} was not deleted within {timeout} seconds.")
+              return False
+
+          def check_mount_target_exists(file_system_id, mount_target_id):
+              try:
+                  efs_client.describe_mount_targets(MountTargetId=mount_target_id)
+                  return True
+              except efs_client.exceptions.MountTargetNotFound:
+                  return False
+
+          def wait_for_mount_target_deletion(file_system_id, mount_target_id):
+              logger.info("Waiting for mount target %s to be deleted.", mount_target_id)
+              while check_mount_target_exists(file_system_id, mount_target_id):
+                  time.sleep(15)  # Wait for 15 seconds before checking again.
+      Role: !GetAtt WorkshopCustomResourceRole.Arn
+  DomainCleaner:
+    Type: Custom::DomainCleaner
+    Properties:
+      ServiceToken: !GetAtt DomainCleanerFunction.Arn
+      BucketName: !Ref SMDomainBucket
+      Tags:
+        Key: "ManagedByAmazonSageMakerResource"
+        Value: !GetAtt SMDomain.DomainArn
+##
+## End of SageMaker Components
+##

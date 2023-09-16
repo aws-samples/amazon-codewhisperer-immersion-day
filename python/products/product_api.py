@@ -17,7 +17,7 @@ def get_products():
     return table['Items']
 
 
-# Lambda function to upload an image to S3
+# Lambda function to query products
 def lambda_handler(event, context):
     try:
         productss = get_products() 

@@ -27,7 +27,7 @@ deals = [
 ]
 
 
-# Lambda function to insert user into DynamoDB table
+# Lambda function to query deals info
 def lambda_handler(event, context):
     print(event)
     try:

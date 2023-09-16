@@ -1,4 +1,4 @@
-# User API Validation
+# Deals API Validation
 
 The deals API allows users to get a list of current promotions. The API is working but it only returns results in JSON. A new customer has requested that we support XML. Your challenge is it add support for XML response. If the user requests XML, the function should return XML. Otherwise, it should return JSON.
 

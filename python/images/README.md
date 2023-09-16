@@ -1,4 +1,4 @@
-# User API Validation
+# Image API Validation
 
 The image API allows users to upload images to S3. The API is working, but users occasionally upload inappropriate images. Your challenge is to moderate images using Amazon Rekognition. If the message includes an inappropriate or offensive image, the function should return a 400 response code.
 

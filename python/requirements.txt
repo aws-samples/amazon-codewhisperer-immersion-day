@@ -5,5 +5,5 @@ mock==5.0.2
 python-dateutil==2.8.2
 s3transfer==0.6.1
 six==1.16.0
-urllib3==1.26.15
+urllib3==1.26.18
 pytest==7.2.2

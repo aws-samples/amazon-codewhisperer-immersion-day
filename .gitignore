@@ -1,3 +1,7 @@
 
 # Other
 .DS_Store
+ localtest
+  		  
+.fake
+*/wwwroot/lib

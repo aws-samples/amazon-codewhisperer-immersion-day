@@ -1,0 +1,12 @@
+{
+    "dotnetAcquisitionExtension.existingDotnetPath": [
+        {
+            "extensionId": "ms-dotnettools.csharp",
+            "path": "/usr/local/share/dotnet/dotnet"
+        },
+        {
+            "extensionId": "ms-dotnettools.vscode-dotnet-runtime",
+            "path": "/usr/local/share/dotnet/dotnet"
+        }
+    ]
+}

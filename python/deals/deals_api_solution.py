@@ -40,7 +40,7 @@ def json_to_xml(json_data):
     xml += '</deals>'
     return xml
 
-# Lambda function to insert user into DynamoDB table
+# Lambda function to query deals info
 def lambda_handler(event, context):
     print(event)
     try:

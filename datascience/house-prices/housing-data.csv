@@ -1,4 +1,4 @@
-Bed,Bath,sq. ft.,lot size,Price,Type
+Bed,Bath,sq. ft.,lot_size,Price,Type
 6,3.5,2606,0.42,2050000,House
 2,1,1095,0.14,750000,Condo
 4,6.5,5220,0.69,2270000,Multifamily

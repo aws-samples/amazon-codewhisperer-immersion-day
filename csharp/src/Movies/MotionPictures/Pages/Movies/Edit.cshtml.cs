@@ -25,12 +25,12 @@ namespace MotionPictures.Pages.Movies
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
-            if (id == null || _context.Movie == null)
+            if (id == null || _context.Movies == null)
             {
                 return NotFound();
             }
 
-            var movie =  await _context.Movie.FirstOrDefaultAsync(m => m.ID == id);
+            var movie =  await _context.Movies.FirstOrDefaultAsync(m => m.ID == id);
             if (movie == null)
             {
                 return NotFound();
@@ -71,7 +71,7 @@ namespace MotionPictures.Pages.Movies
 
         private bool MovieExists(int id)
         {
-          return (_context.Movie?.Any(e => e.ID == id)).GetValueOrDefault();
+          return (_context.Movies?.Any(e => e.ID == id)).GetValueOrDefault();
         }
     }
 }

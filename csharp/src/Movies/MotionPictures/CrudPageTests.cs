@@ -59,14 +59,14 @@ namespace MotionPictures.Tests.UnitTests
                     Price = 9.95M
                 }
             };
-            var before = await context.Movie.ToListAsync();
+            var before = await context.Movies.ToListAsync();
 
             // Act
             var result = await pageModel.OnPostAsync();
 
             // Assert
             Assert.IsType<RedirectToPageResult>(result);
-            var after = await context.Movie.ToListAsync();
+            var after = await context.Movies.ToListAsync();
             Assert.Equal(before.Count + 1, after.Count);
          
             connection.Dispose();
@@ -97,14 +97,14 @@ namespace MotionPictures.Tests.UnitTests
             
             // Arrange
             var pageModel = new DeleteModel(context);
-            var before = await context.Movie.ToListAsync();
+            var before = await context.Movies.ToListAsync();
 
             // Act
             var result = await pageModel.OnPostAsync(2567);
 
             // Assert
             Assert.IsType<RedirectToPageResult>(result);
-            var after = await context.Movie.ToListAsync();
+            var after = await context.Movies.ToListAsync();
             Assert.Equal(before.Count - 1, after.Count);
          
             connection.Dispose();

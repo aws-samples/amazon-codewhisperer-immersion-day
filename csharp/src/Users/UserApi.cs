@@ -15,6 +15,22 @@ public class UserApi
     //Function to register a user and return a RegisterUserResponse object
     public RegisterUserResponse RegisterUser(User user)
     {
+        
+        //Uncomment the below lines once you have the validation functions implemented
+
+        //if (!IsValidUser(user))
+        //{
+        //    return new RegisterUserResponse(HttpStatusCode.BadRequest, "Missing required fields");
+        //}
+        //if (!IsValidEmail(user.Email))
+        //{
+        //    return new RegisterUserResponse(HttpStatusCode.BadRequest, "Invalid email");
+        //}
+        //if (!IsValidZip(user.Zip))
+        //{
+        //    return new RegisterUserResponse(HttpStatusCode.BadRequest, "Invalid zip");
+        //}
+
         //Save user to database using UsersDBContext
         using (var usersDBContext = _usersDBContextFactory.CreateDbContext())
         {

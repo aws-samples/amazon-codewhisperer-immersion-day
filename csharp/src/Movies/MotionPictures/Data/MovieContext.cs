@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,6 +14,6 @@ namespace MotionPictures.Data
         {
         }
 
-        public DbSet<MotionPictures.Models.Movie> Movie { get; set; } = default!;
+        public DbSet<MotionPictures.Models.Movie> Movies { get; set; } = default!;
     }
 }

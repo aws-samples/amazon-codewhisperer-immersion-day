@@ -23,9 +23,9 @@ namespace MotionPictures.Pages.Movies
 
         public async Task OnGetAsync()
         {
-            if (_context.Movie != null)
+            if (_context.Movies != null)
             {
-                Movie = await _context.Movie.ToListAsync();
+                Movie = await _context.Movies.ToListAsync();
             }
         }
     }

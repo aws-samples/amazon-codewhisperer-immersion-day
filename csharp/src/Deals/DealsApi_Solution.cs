@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using System.Text.Json;
 using System.Xml.Serialization;
+using static Deals.DealsApi;
 
 namespace Deals
 {
@@ -28,29 +29,48 @@ namespace Deals
                 Currency= "USD"}
         };
 
-        //<summary>Method to serialize delas object to JSON.</summary>       
-        //<returns>Returns JSON string</returns> 
-        public string GetDealsJSON()
+        //<summary>Method to get deals object</summary>
+        //<returns>Returns APIResponse object</returns>  
+        public APIResponse GetDeals(string format = "json")
+        {
+            APIResponse response = new APIResponse();
+            if (format == "json")
+            {
+                response = GetDealsJSON();
+            }
+            else
+            {                
+                response = GetDealsXML();
+            }
+            return response;
+        }
+
+        //<summary>Method to serialize deals object to JSON.</summary>       
+        //<returns>Returns JSON string</returns>      
+        private APIResponse GetDealsJSON()
         {
             var json = JsonSerializer.Serialize(deals);
-            return json;
+            return new APIResponse
+            {
+                ContentType = "application/json",
+                Content = json
+            };
         }
 
         #region
         // Create a method to convert Deals object to XML
-        #endregion
-
-        //<summary>Method to serialize deals object to XML</summary>       
-        //<returns>Returns XML string</returns> 
-        public string GetDealsXML()
+        //<summary>Method to serialize deals object to XML.</summary>
+        //<returns>Returns XML string</returns>
+        private APIResponse GetDealsXML()
         {
             var serializer = new XmlSerializer(typeof(List<Deal>));
-            var sb = new StringBuilder();
-            using (var writer = new StringWriter(sb))
+            var stringWriter = new StringWriter();
+            serializer.Serialize(stringWriter, deals);
+            return new APIResponse
             {
-                serializer.Serialize(writer, deals);
-                return sb.ToString();
-            }
+                ContentType = "application/xml",
+                Content = stringWriter.ToString()
+            };
         }
 
         public class Deal

@@ -2,7 +2,7 @@
 
 namespace Deals
 {
-    public class DealsApi
+    public partial class DealsApi
     {
         // List of Deals
         List<Deal> deals = new List<Deal>() {
@@ -26,15 +26,34 @@ namespace Deals
                 Currency= "USD"}
         };
 
-    
-       //<summary>Method to serialize delas object to JSON.</summary>       
-       //<returns>Returns JSON string</returns>      
-        public string GetDealsJSON()
+        //<summary>Method to get deals object</summary>
+        //<returns>Returns APIResponse object</returns>  
+        public APIResponse GetDeals(string format = "json")
+        {
+            APIResponse response = new APIResponse();
+            if (format == "json")
+            {
+                return GetDealsJSON();
+            }
+            else
+            {
+                // Uncomment the below lines once the GetDealsXML() is implemented
+                // return GetDealsXML();
+            }
+            return response;
+        }
+
+        //<summary>Method to serialize deals object to JSON.</summary>       
+        //<returns>Returns JSON string</returns>      
+        private APIResponse GetDealsJSON()
         {
             var json = JsonSerializer.Serialize(deals);
-            return json;
+            return new APIResponse {
+                ContentType = "application/json",
+                Content = json
+            };
         }
-        
+
         // Deal model with all the properties
         public class Deal
         {

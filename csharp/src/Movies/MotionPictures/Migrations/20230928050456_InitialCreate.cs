@@ -12,7 +12,7 @@ namespace MotionPictures.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Movie",
+                name: "Movies",
                 columns: table => new
                 {
                     ID = table.Column<int>(type: "INTEGER", nullable: false)
@@ -32,7 +32,7 @@ namespace MotionPictures.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Movie");
+                name: "Movies");
         }
     }
 }

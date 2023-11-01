@@ -26,7 +26,7 @@ namespace MotionPictures.Pages.Movies
         // Delete the entire method before asking CodeWhisperer for inferences
         public async Task<IActionResult> OnPostAsync()
         {
-          return null;
+            return null;
         }
     }
 }

@@ -27,12 +27,12 @@ namespace MotionPictures.Pages.Movies
         // If the checks pass then add it to the database
         public async Task<IActionResult> OnPostAsync()
         {
-          if (!ModelState.IsValid || _context.Movie == null || Movie == null)
+          if (!ModelState.IsValid || _context.Movies == null || Movie == null)
             {
                 return Page();
             }
 
-            _context.Movie.Add(Movie);
+            _context.Movies.Add(Movie);
             await _context.SaveChangesAsync();
 
             return RedirectToPage("./Index");

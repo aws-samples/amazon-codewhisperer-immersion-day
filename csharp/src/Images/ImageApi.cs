@@ -39,6 +39,7 @@ public class ImageApi
     }
 
     //Function to moderate image bytes with AWS Rekognition
+    //Delete the entire method before asking CodeWhisperer for inferences
     public async Task<List<Label>> DetectLabels(MemoryStream bytes)
     {
         return new List<Label>();

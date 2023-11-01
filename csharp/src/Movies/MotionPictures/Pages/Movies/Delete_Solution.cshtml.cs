@@ -20,12 +20,12 @@ namespace MotionPictures.Pages.Movies
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
-            if (id == null || _context.Movie == null)
+            if (id == null || _context.Movies == null)
             {
                 return NotFound();
             }
 
-            var movie = await _context.Movie.FirstOrDefaultAsync(m => m.ID == id);
+            var movie = await _context.Movies.FirstOrDefaultAsync(m => m.ID == id);
 
             if (movie == null)
             {
@@ -42,16 +42,16 @@ namespace MotionPictures.Pages.Movies
         // Deletes the Movie from the database given the id
         public async Task<IActionResult> OnPostAsync(int? id)
         {
-            if (id == null || _context.Movie == null)
+            if (id == null || _context.Movies == null)
             {
                 return NotFound();
             }
-            var movie = await _context.Movie.FindAsync(id);
+            var movie = await _context.Movies.FindAsync(id);
 
             if (movie != null)
             {
                 Movie = movie;
-                _context.Movie.Remove(Movie);
+                _context.Movies.Remove(Movie);
                 await _context.SaveChangesAsync();
             }
 
